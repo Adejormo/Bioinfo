@@ -76,7 +76,7 @@ plot(enraizado)
 veros <- pml_bb(fit, 
                 control = pml.control(trace = 0))
 ```
-Con este modelo no obtenemos un resultado. El ordenador hae demasiadas iteraciones y no nos da un resultado, se queda bsucando el mejor resultado pero no es capaz de optimizarlo.
+Con el primer bloqe de código, usando directamente el modelo que hemos elegido antes, no obtenemos un resultado. El ordenador hace demasiadas iteraciones y no nos da un resultado, se queda bsucando el mejor resultado pero no es capaz de optimizarlo. Para ello usamos este nuevo, bloque, usando "fit" que lo hemos definido previamente.
 
 El objeto veros, de clase pml, contiene el árbol (veros$tree), además de los parámetros optimizados del modelo. Podemos enraizar el árbol usando al gorila como outgroup:
 
