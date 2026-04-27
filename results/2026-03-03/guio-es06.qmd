@@ -3,7 +3,7 @@ title: "Búsquedas programáticas en Interpro"
 lang: es
 date: today
 execute: 
-  output: false
+  output: true
   error: true
 engine: knitr
 language:
@@ -295,11 +295,7 @@ names(vert[['results']])
 kable(flatten(vert[['results']][['metadata']])) %>%
    kable_styling()
 ```
-Para compilar:
-Eliminar la linea de bibliografia
-En el preambulo cambiar false por true
-Los bloques del final, cambiar eval: false por eval: true
-Descargar en la carpeta de trabajo: equinodermata.Rds chordata.Rds
+
 
 ## Ejercicio 6
 ¿Cuántas proteínas de cocodrilos (taxon 8493) conocemos con el dominio
@@ -318,7 +314,7 @@ Además, el bloque incluye la opción `eval: false`, para que no se ejecute. Cam
 la opción cuando 
 
 ```{r}
-#| eval: false
+#| eval: true
 
 # Si ya existe la tabla, la cargamos:
 if (file.exists('equinodermata.Rds')) {
@@ -346,7 +342,7 @@ de cordados que de equinodermos, no es sorprendente que haya más dominios prote
 conocidos de cordados. Por cierto, los cordados somos el taxon 7711.
 
 ```{r}
-#| eval: false
+#| eval: true
 
 if (file.exists('chordata.Rds')) {
    chordata <- readRDS(file = 'chordata.Rds')
