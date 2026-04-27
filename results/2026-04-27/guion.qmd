@@ -1,0 +1,201 @@
+---
+title: "quio.qmd"
+author: "Alejandro de Jorge"
+format: html
+editor: visual
+---
+
+# P12. Análisis de expresión diferencial
+
+## Preparación
+
+```{r}
+.libPaths('/home/VMAULES/joiglu/R')
+```
+
+Sólo necesitas instalar el paquete DESeq2 de Bioconductor. Si lo haces en el ordenador virtual y tienes problemas de compatibilidad entre la versión de R y la de Bioconductor, sigue la estrategia siguiente:
+
+Crea una carpeta R en tu directorio de entrada al ordenador. Inicia una sesión de R y añade el directorio al .libPaths, así: .libPaths('./R') (suponiendo que tu directorio de trabajo es el mismo donde has creado la carpeta R). Actualiza la versión de BiocManager a la 3.22 de la siguiente manera (atención, esto lleva un par de horas): BiocManager::install(version = '3.22', lib = './R'). Instala el paquete DESeq2: BiocManager::install('DESeq2', lib = './R').
+
+## Datos
+
+Utilizaremos las medidas de expresión génica del archivo salmon.merged.gene_counts.tsv que podéis descargar en este enlace o en el aula virtual. Los datos proceden de 12 genotecas de RNA-seq de lecturas emparejadas, de muestras de Drosophila melanogaster de dos orígenes geográficos (Panamá y Maine) y dos tratamientos de temperatura (low y high) (Zhao 2015). Hay 3 réplicas biológicas para cada combinación de región y temperatura. Si tenéis curiosidad sobre cómo se han obtenido los recuentos de lecturas por gen a partir de los archivos FASTQ, podéis consultarlo en este enlace.
+
+Además, necesitáis el archivo dme_elev_samples.tsv, una tabla que indica a qué región y tratamiento pertenece cada muestra. Lo podéis descargar de este enlace o del aula virtual.
+
+Los dos archivos deben estar guardados en la carpeta de datos.
+
+## Exploración de los datos
+
+```{r}
+muestras <- read.table('../../data/dme_elev_samples.tsv', header = TRUE)
+genex <- read.table('../../data/salmon.merged.gene_counts.tsv',
+                    header = TRUE)
+```
+
+**Ejercicio 1**
+
+*1 Usa la función paste() para añadir una columna a muestras que contenga la población y la temperatura unidas por \_.*
+
+```{r}
+muestras <- cbind(muestras, Pop_temp = paste(muestras$population, muestras$temp, sep = "_"))
+```
+
+*2 ¿Cuál es el número total de lecturas por muestra?*
+
+```{r}
+sum(genex$SRR1576457)
+sum(genex$SRR1576458)
+sum(genex$SRR1576459)
+sum(genex$SRR1576460)
+sum(genex$SRR1576461)
+sum(genex$SRR1576462)
+sum(genex$SRR1576463)
+sum(genex$SRR1576464)
+sum(genex$SRR1576465)
+sum(genex$SRR1576514)
+sum(genex$SRR1576515)
+sum(genex$SRR1576516)
+```
+
+*3 ¿Los recuentos tienen distribuciones parecidas entre muestras?*
+
+```{r}
+f <- rowSums(genex[,-c(1,2)])>0
+plot(density(genex[f ,3]), log = 'x', xlim= c(1,10000))
+lines(density(genex[f ,4]))
+lines(density(genex[f ,5]))
+lines(density(genex[f ,6]))
+lines(density(genex[f ,7]))
+lines(density(genex[f ,8]))
+lines(density(genex[f ,9]))
+lines(density(genex[f ,10]))
+lines(density(genex[f ,11]))
+lines(density(genex[f ,12]))
+lines(density(genex[f ,13]))
+lines(density(genex[f ,14]))
+```
+
+```{r}
+summary(genex)
+```
+
+Analizando los recuentos con la función summary podemos observar como los datos son bastante similares.
+
+*4. ¿Cuántos genes no se expresan en absoluto en ninguna de las muestras?*
+
+```{r}
+sum(rowSums(genex[, -c(1,2)]) == 0)
+```
+
+47722 genes no se han recogido en ninguna de las lecturas del RNAseq
+
+## Crear el objeto de clase DESeqDataSet
+
+Para crear un objeto de clase DESeqDataSet necesitamos que las filas de la tabla muestras estén en el mismo orden que las columnas en genex. La función DESeqDataSetFromMatrix() necesita que los recuentos sean una matriz, no un marco de datos. Y en muestras debe haber factores.
+
+```{r}
+suppressMessages(library('DESeq2'))
+all(names(genex)[3:14] == muestras$sample)
+```
+
+Comprobamos que se cumplen x condiciones para que el análisis se realice correctamente
+
+```{r}
+# Pasamos la columna "sample" a nombres de fila:
+row.names(muestras) <- muestras$sample
+# Eliminamos la columna "sample":
+muestras$sample <- NULL
+# Y convertimos "population" y "temp" en factores:
+muestras$population <- factor(muestras$population,
+                              levels = c('maine', 'panama'))
+muestras$temp       <- factor(muestras$temp,
+                              levels = c('low', 'high'))
+muestras
+```
+
+los factores son variables categoricas que solo admiiten un numero determinado de valoores. A estos se les llama niveles. Cuando hacemos estadísticas, el primer nivel es el control y el resto de niveles se comparan con el control.
+
+Aunque no hacía falta definir los niveles de los factores, lo indico porque es un buen momento para definir manualmente su orden (por defecto se ordenan alfabéticamente). El orden de los niveles determina qué nivel actúa como referencia en los contrastes estadísticos (el primero). Esto resultaría importante, por ejemplo, al comparar tratamientos respecto de un control.
+
+Los datos de recuento deben ser números enteros y en forma de matriz
+
+```{r}
+row.names(genex) <- genex$gene_name
+genex$gene_name <- NULL
+genex$gene_id   <- NULL
+genex <- round(as.matrix(genex))
+```
+
+```{r}
+dds1 <- DESeqDataSetFromMatrix(
+   countData = genex,
+   colData = muestras,
+   design = ~ population + temp
+)
+dds1
+
+# la ~ indica las variables que pueden alterar la variable respuesta
+```
+
+*nota:* Los objetos DESeqDataSet pueden contener información sobre las coordenadas cromosómicas de los genes o tránscritos, si se construyen a partir de otro tipo de datos.
+
+## Pre-filtrado
+
+Una fracción importante de genes no se están expresando en ningúna muestra. Aunque el filtrado no es necesario, ayuda a reducir la memoria ocupada por dds1:
+
+suma las filas y dime en cuales la suma es mayor que 0. Que una fila sea 0 significa que no hay expresión. usamos el vector de V/F para seleccionar esas filas de esa matriz de recuentos.
+
+## Expresión diferencial
+
+Observa que la función DESeq() produce un objeto también de clase DESeqDataSet, pero con resultados añadidos:
+
+```{r}
+dds1 <- DESeq(dds1)
+```
+
+```{r}
+res <- results(dds1)
+res
+```
+
+Por defecto, la función results() produce la tabla de resultados para el contraste entre el nivel último y el de referencia del último factor en la tabla que describe las muestras. En este caso, el factor es temp, el nivel de referencia es low y el otro nivel es high. Por tanto, los valores de log2FoldChange representan el logaritmo en base 2 de la relación entre niveles de expresión en muestras high respecto de muestras low.
+
+**Ejercicio 3** *1 Mira la ayuda de results() y genera también la tabla de resultados para el contraste entre las dos regiones de procedencia de las moscas.*
+
+```{r}
+res2 <- results(dds1, contrast=c("population", "maine", "panama"))
+res2
+```
+
+Ahora el apartado log2FoldChange nos compara la expresión entre las dos regiones; Maine y Panamá
+
+*2. Usa summary() sobre los resultados para ver el número de genes diferencialmente expresados entre cada par de condiciones.*
+
+```{r}
+summary(res)
+summary(res2)
+```
+
+*3. ¿Cuál es la tasa de falsos positivos (FDR)?*
+
+```{r}
+sum(res$padj < 0.05, na.rm = TRUE)
+sum(res2$padj < 0.05, na.rm = TRUE)
+```
+
+Este es el número de falsos positivos.
+
+## Gráficas
+
+```{r}
+plotMA(res)
+```
+
+Los genes con niveles de expresión más bajos producen resultados más ruidosos (la varianza es mayor). La función lfcShrink() contrae (shrink) las estimaciones de los efectos (log fold change) para reducir el ruido y hacer el resultado más realista:
+
+```{r}
+resShrink <- lfcShrink(dds1, coef = 'temp_high_vs_low',
+                       type = 'normal')
+plotMA(resShrink)
+```
