@@ -93,6 +93,7 @@ Para ejecutar GALBA ha sido necesario crear algunas variables de entorno que ind
 
 **Ejercicio 4** Incluye en tu documento de Quarto un bloque de código (pero no ejecutable, con la opción eval: false) como el anterior, donde los caminos TSERBA y a MINIPROTHINT se correspondan con tu propia carpeta bin, aunque no los tengas instalados.
 
+
 ```{bash}
 #| eval: false
 if [ ! -e GALBA/galba.gtf ]; then
@@ -112,3 +113,4 @@ Encontrarás los resultados de GALBA en la carpeta comprimida galba.zip, en el a
 Los archivos que empiezan At4 y tienen diferentes terminaciones son una base de blast. El repeat modleer usa como imput el ensamblaje y lo convierte en una base de datos de blast. El stk son alinemainetos en un formato anticuado, estoclmo el .fa contiene las secuenias consenso d ecada familia identificada. Hemos identifixcado 24 familias. LTR gipsy inidca el tamaño del elemnto transponible. El repat modeler se hubiera jeecutado al hacre une ensablaje de una nueva especie, que tendria elementos tranponible y habria que identificarlos.
 
 Repeatmasker. N = elemtos transponibles. Estos programas encuentran elementos dentro de otros, hacen un buen trabajo.
+
