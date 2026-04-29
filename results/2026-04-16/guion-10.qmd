@@ -1,6 +1,6 @@
 ---
 title: "Práctica 10. Ensamblaje de genomas"
-author: "Luis Pérez Lucena"
+author: "Alejandro de Jorge"
 format: html
 engine: knitr
 ---
@@ -103,7 +103,7 @@ El ensamblaje de estas lecturas puede durar unos minutos. No queremos tener que 
 #| cache: true
 export PATH=$PATH:~/bin/hifiasm
 if [ ! -e asm1/At4.bp.p_ctg.gfa ]; then
-   hifiasm -o asm1/At4 -t 2 -f 0 ../../Data/At4.10.fa.gz 2> asm1/hifiasm.log
+   hifiasm -o asm1/At4 -t 2 -f 0 ../../data/At4.10.fa.gz 2> asm1/hifiasm.log
    # La ! niega lo que viene a continuación, mientras que el -e significa "existe"
 fi
 ```
