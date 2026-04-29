@@ -1,6 +1,6 @@
 ---
 title: "Práctica 10. Ensamblaje de genomas"
-author: "Luis Pérez Lucena"
+author: "Alejandro de Jorge Moreno"
 format: html
 engine: knitr
 ---
