@@ -45,7 +45,9 @@ apt install emboss exonerate wget muscle
 | rm -r a   | Eliminar el *directorio* "a" y su contenido |
 | touch a   | Crear el archivo vacío "a" o actualizar su fecha de consulta si ya existía |
 | ls | Saber qué hay en esta carpeta |
-
+| clear | Borrar el contenido del terminal |
+| sudo | Ejecuta un comando con permisos de administrador |
+| man a | ayuda para saber cómo funciona el comando a |
 ::: {.callout-tip title="Consejo"}
 Amplía la tabla modificando el documento fuente.
 :::
@@ -109,32 +111,34 @@ debería guardarse en un archivo en formato de texto.
 #| eval: false
 # Sólo queremos ejecutar el código si los resultados no
 # están ya disponibles, es decir, si el archivo de salida no existe.
-if [ ! -e aln1.txt ]; then
+if [ ! -e aln_Chr17.FASTA ]; then
    # Sólo descargaremos las secuencias, si no están ya descargadas.
-   if [ ! -e HumanSMARCD2.fa ]; then
+   if [ ! -e ChimpSMARCD2.fa ]; then
       # Con la opción "-O" (letra mayúscula, no número cero) indicamos
       # el nombre del archivo donde queremos guardar la secuencia.
-      wget -O HumanSMARCD2.fa https://www.ebi.ac.uk/ena/browser/api/fasta/AAI36323.1
+      wget -O ChimpSMARCD2.fa https://www.ebi.ac.uk/ena/browser/api/fasta/PNJ01291.1
    fi
-   if [ ! -e HumanChr17.fa ]; then
-      wget -O HumanChr17.fa \
-         https://rest.ensembl.org/sequence/region/human/17:63832000..63843000:1?content-type=text/x-fasta
+   if [ ! -e ChimpChr17.fa ]; then
+      wget -O ChimpChr17.fa \
+         https://rest.ensembl.org/sequence/region/chimpanzee/17:63309800..63321000:1?content-type=text/x-fasta
    fi
    # Utilizamos el carácter "\" para que Bash ignore el salto de línea
    # y poder distribuir los argumentos y opciones en más de una línea.
-   needle -asequence HumanChr17.fa \
-          -bsequence HumanaSMARCD2.fa \
-          -gapopen 15.0 \
-          -gapextend 0.5 \
-          -auto \
-          -outfile aln1.txt
+   # Ejemplo ajustando penalizaciones
+  water -asequence ChimpChr17.fa \
+        -bsequence ChimpSMARCD2.fa \
+        -gapopen 10.0 \
+        -gapextend 0.5 \
+        -auto \
+        -aformat fasta \
+        -outfile aln_Chr17.FASTA
 fi
 ```
 
 :::{.callout-note icon=false}
 ## Desafíos
 0. Lee detenidamente las órdenes y los comentarios y asegúrate de entenderlos.
-1. Si al ejecutarlas aparece algún mensaje de error, léelo y corrige el error.
+1. Si al ejecutarlas aparece algún mensaje de error, léelo y corrige el error. 
 2. Lee la ayuda del programa `needle` e intenta ajustar los parámetros
    para obtener un alineamiento más convincente.
 3. Prueba el programa `water`, para que el alineamiento sea local.
@@ -164,6 +168,7 @@ if [ ! -e HumanChr17.fa ]; then
 fi
 exonerate --model est2genome HumanSMARCD2.fa HumanChr17.fa
 ```
+**NO HE PODIDO DESCARGAR EXONERATE DESDE EL ORDENADOR VIRTUAL YA QUE NO TENGO PERMISOS. TAMPOCO HE PODIDO HACERLO DESDE INTERNET**
 
 En este caso, el alineamiento resultante no se ha enviado a un archivo, sino al
 *standard output*, que Quarto recoge y presenta en este mismo documento. Por eso,
@@ -186,7 +191,7 @@ if [ ! -e PF00009.fa ]; then
 fi
 
 if [ ! -e PF00009.afa ]; then
-   muscle -align PF00009.fa -output PF00009.afa
+   ~/muscle -align PF00009.fa -output PF00009.afa
 fi
 ```
 
